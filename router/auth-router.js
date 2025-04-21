@@ -14,6 +14,7 @@ router.route('/login').post(validate(loginSchema), authcontroller.login)
 router.route('/contact').post(validate(contactSchema), authcontroller.contact)
 router.route('/user').get(authMiddleware, authcontroller.user)
 router.route('/services').get(authcontroller.services)
+router.route('/payment').post(authcontroller.payment)
 
 adminRouter.route('/user').get(authMiddleware, adminMiddleware, authcontroller.adminUser)
 adminRouter.route('/user/:id/edit').get(authMiddleware, adminMiddleware, authcontroller.getUserById)

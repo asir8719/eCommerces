@@ -2,6 +2,8 @@ import { User } from "../models/user-model.js";
 import { Contact } from "../models/contact-model.js";
 import bcrypt from 'bcryptjs'
 import { Service } from "../models/service-model.js";
+import Stripe from "stripe";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 const home = async(req, res) =>{
     try{
@@ -50,6 +52,7 @@ const login = async(req, res) =>{
                 message: "Login Successful",
                 token: await userExist.generateToken(),
                 userId: userExist._id.toString(),
+                isAdmin: userExist.isAdmin ? 'true' : 'false',
             })
         } else{
             res.status(401).json({ error: "Invalid Email or Password" })
@@ -215,4 +218,40 @@ const adminServicesDelete = async (req, res) => {
     }
 }
 
-export {home, register, login, contact, user, services, adminUser, adminUserUpdate, getUserById, adminUserDelete, adminContact, adminContactDelete, adminServices, adminServicesUpdate, adminServicesDelete}
+const payment = async(req, res) =>{
+    try {
+        const { amount, currency, description } = req.body
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: currency,
+                        product_data: {
+                            name: description,
+                        },
+                        unit_amount: amount,
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `${process.env.CLIENT_URL}/success`,
+            cancel_url: `${process.env.CLIENT_URL}/cancel`,
+        })
+        res.status(200).json({url: session.url})
+
+        // const paymentIntent = await stripe.paymentIntents.create({
+        //     amount: amount,
+        //     currency: currency,
+        //     description: description,
+        //     payment_method_types: ['card'],
+        // })
+        // res.status(200).json({msg: paymentIntent})
+    } catch (error) {
+        res.status(500).json({error: 'Internal Server Error'})
+    }
+}
+
+export {home, register, login, contact, user, services, payment, adminUser, adminUserUpdate, getUserById, adminUserDelete, adminContact, adminContactDelete, adminServices, adminServicesUpdate, adminServicesDelete}
