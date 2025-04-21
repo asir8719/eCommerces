@@ -219,39 +219,39 @@ const adminServicesDelete = async (req, res) => {
 }
 
 const payment = async(req, res) =>{
-    try {
-        const { amount, currency, description } = req.body
+    // try {
+    //     const { amount, currency, description } = req.body
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
-            line_items: [
-                {
-                    price_data: {
-                        currency: currency,
-                        product_data: {
-                            name: description,
-                        },
-                        unit_amount: amount,
-                    },
-                    quantity: 1,
-                },
-            ],
-            mode: 'payment',
-            success_url: `${process.env.CLIENT_URL}/success`,
-            cancel_url: `${process.env.CLIENT_URL}/cancel`,
-        })
-        res.status(200).json({url: session.url})
+    //     const session = await stripe.checkout.sessions.create({
+    //         payment_method_types: ['card'],
+    //         line_items: [
+    //             {
+    //                 price_data: {
+    //                     currency: currency,
+    //                     product_data: {
+    //                         name: description,
+    //                     },
+    //                     unit_amount: amount,
+    //                 },
+    //                 quantity: 1,
+    //             },
+    //         ],
+    //         mode: 'payment',
+    //         success_url: `${process.env.CLIENT_URL}/success`,
+    //         cancel_url: `${process.env.CLIENT_URL}/cancel`,
+    //     })
+    //     res.status(200).json({url: session.url})
 
-        // const paymentIntent = await stripe.paymentIntents.create({
-        //     amount: amount,
-        //     currency: currency,
-        //     description: description,
-        //     payment_method_types: ['card'],
-        // })
-        // res.status(200).json({msg: paymentIntent})
-    } catch (error) {
-        res.status(500).json({error: 'Internal Server Error'})
-    }
+    //     // const paymentIntent = await stripe.paymentIntents.create({
+    //     //     amount: amount,
+    //     //     currency: currency,
+    //     //     description: description,
+    //     //     payment_method_types: ['card'],
+    //     // })
+    //     // res.status(200).json({msg: paymentIntent})
+    // } catch (error) {
+    //     res.status(500).json({error: 'Internal Server Error'})
+    // }
 }
 
 export {home, register, login, contact, user, services, payment, adminUser, adminUserUpdate, getUserById, adminUserDelete, adminContact, adminContactDelete, adminServices, adminServicesUpdate, adminServicesDelete}
