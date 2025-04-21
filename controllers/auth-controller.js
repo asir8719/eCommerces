@@ -2,8 +2,8 @@ import { User } from "../models/user-model.js";
 import { Contact } from "../models/contact-model.js";
 import bcrypt from 'bcryptjs'
 import { Service } from "../models/service-model.js";
-import Stripe from "stripe";
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+// import Stripe from "stripe";
+// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 const home = async(req, res) =>{
     try{
