@@ -1,9 +1,14 @@
 import { User } from "../models/user-model.js";
 import { Contact } from "../models/contact-model.js";
 import bcrypt from 'bcryptjs'
+import dotenv from 'dotenv'
+dotenv.config()
 import { Service } from "../models/service-model.js";
-// import Stripe from "stripe";
-// const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+import Razorpay from "razorpay";
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+})
 
 const home = async(req, res) =>{
     try{
@@ -218,40 +223,40 @@ const adminServicesDelete = async (req, res) => {
     }
 }
 
-const payment = async(req, res) =>{
-    // try {
-    //     const { amount, currency, description } = req.body
-
-    //     const session = await stripe.checkout.sessions.create({
-    //         payment_method_types: ['card'],
-    //         line_items: [
-    //             {
-    //                 price_data: {
-    //                     currency: currency,
-    //                     product_data: {
-    //                         name: description,
-    //                     },
-    //                     unit_amount: amount,
-    //                 },
-    //                 quantity: 1,
-    //             },
-    //         ],
-    //         mode: 'payment',
-    //         success_url: `${process.env.CLIENT_URL}/success`,
-    //         cancel_url: `${process.env.CLIENT_URL}/cancel`,
-    //     })
-    //     res.status(200).json({url: session.url})
-
-    //     // const paymentIntent = await stripe.paymentIntents.create({
-    //     //     amount: amount,
-    //     //     currency: currency,
-    //     //     description: description,
-    //     //     payment_method_types: ['card'],
-    //     // })
-    //     // res.status(200).json({msg: paymentIntent})
-    // } catch (error) {
-    //     res.status(500).json({error: 'Internal Server Error'})
+const createCheckoutSession = async (req, res) => {
+    const {amount} = req.body;
+    // if (!price) {
+    //     return res.status(400).json({ error: 'No items provided' });
     // }
+    try {
+        console.log(amount);
+        
+        const session = await razorpay.orders.create({
+            amount: amount,
+            currency: 'INR',
+            receipt: `reciept_order_${Math.floor(Math.random() * 1000)}`,
+        })
+        res.status(200).json(session)
+    } catch(error) {
+        console.error(error);
+        res.status(500).json({ error: `Internal Server Error` });
+    }
 }
 
-export {home, register, login, contact, user, services, payment, adminUser, adminUserUpdate, getUserById, adminUserDelete, adminContact, adminContactDelete, adminServices, adminServicesUpdate, adminServicesDelete}
+const verifyPayment = async (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+        const generated_signature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+            .update(razorpay_order_id + '|' + razorpay_payment_id)
+            .digest('hex');
+        if (generated_signature === razorpay_signature) {
+            res.status(200).json({ status: 'success' });
+        } else {
+            res.status(400).json({ status: 'failure' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+export {home, register, login, contact, user, services, createCheckoutSession, adminUser, adminUserUpdate, getUserById, adminUserDelete, adminContact, adminContactDelete, adminServices, adminServicesUpdate, adminServicesDelete, verifyPayment}
